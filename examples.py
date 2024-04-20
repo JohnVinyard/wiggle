@@ -1,8 +1,52 @@
 from wiggle import Sampler, SamplerParameters, FilterParameters, \
-    GainParameters, GainKeyPoint, ReverbParameters, AudioFetcher
+    GainParameters, GainKeyPoint, ReverbParameters, AudioFetcher, Event, Sequencer, SequencerParams
 from io import BytesIO
+import numpy as np
+from copy import deepcopy
 
-if __name__ == '__main__':
+def sequencer_example():
+    kick = SamplerParameters(
+        url='https://one-laptop-per-child.s3.amazonaws.com/tamtam44old/drum1kick.wav',
+        start_seconds=0,
+        reverb=ReverbParameters(
+            url='https://matching-pursuit-reverbs.s3.amazonaws.com/St+Nicolaes+Church.wav',
+            mix=0.5
+        )
+    )
+    
+    samplerate = 22050
+    speed = 0.25
+    
+    sampler = Sampler(fetcher = AudioFetcher(samplerate))
+    events = [
+        # TODO: _render should not be a private-ish method
+        Event(time=i, synth=sampler._render, params=kick, gain=1) 
+        for i in np.arange(start=0, stop=1, step=0.25)
+    ]
+    sequencer = Sequencer(samplerate)
+    sequencer_params = SequencerParams(events=events, speed=speed, normalize=True)
+    
+    seq_events = [
+        Event(time=i, synth=sequencer._render, params=sequencer_params, gain=1)
+        for i in range(4)
+    ]
+    
+    echoed = deepcopy(seq_events)
+    for echo in echoed:
+        echo.time = echo.time + np.random.uniform(0, 0.05)
+        echo.gain = 0.1
+    
+    top_level_params = SequencerParams(events=[*seq_events, *echoed], speed=speed, normalize=True)
+    
+    bio = BytesIO()
+    sequencer.render(top_level_params, bio)
+    bio.seek(0)
+    
+    with open('result.wav', 'wb') as f:
+        f.write(bio.read())
+
+
+def sampler_example():
     fetcher = AudioFetcher(22050)
     sampler = Sampler(fetcher)
     
@@ -40,3 +84,6 @@ if __name__ == '__main__':
     with open('result.wav', 'wb') as f:
         f.write(bio.read())
     
+
+if __name__ == '__main__':
+    sequencer_example()
