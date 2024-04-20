@@ -8,6 +8,7 @@ from librosa.effects import time_stretch, pitch_shift
 from scipy.stats import norm
 from soundfile import SoundFile
 from matplotlib import pyplot as plt
+from functools import lru_cache
 
 
 def ensure_length(samples: np.ndarray, desired_length: int) -> np.ndarray:
@@ -84,6 +85,40 @@ def reverb(dry: np.ndarray, impulse_response: np.ndarray, mix: float) -> np.ndar
     samples = (dry * (1 - mix)) + (wet * mix)
     return samples
 
+
+@lru_cache(maxsize=1024)
+def render(params: SamplerParameters, samplerate: int, fetcher: AudioFetcher) -> np.ndarray:
+    # first, get the audio
+    samples = fetcher(params.url)
+    
+    # slice the audio if start and duration are provided
+    start_sample = params.start_seconds * samplerate
+    duration = (params.duration_seconds * samplerate) or (len(samples) * samplerate)
+    
+    samples = samples[int(start_sample): int(start_sample + duration)]
+    
+    if params.time_stretch:
+        samples = time_stretch(samples, params.time_stretch)
+    
+    if params.pitch_shift:
+        samples = pitch_shift(
+            samples, samplerate, n_steps=params.pitch_shift)
+    
+    if params.filter:
+        samples = bandpass_filter(samples, params.filter)
+    
+    if params.reverb:
+        impulse_response = fetcher(params.reverb.url)
+        samples = reverb(samples, impulse_response, mix=params.reverb.mix)
+    
+    if params.gain:
+        samples = apply_envelope(samples, params.gain)
+    
+    if params.normalize:
+        samples = normalize(samples)
+    
+    return samples
+
 class Sampler(object):
     
     def __init__(self, fetcher: AudioFetcher):
@@ -95,37 +130,7 @@ class Sampler(object):
         return self.fetcher.samplerate
     
     def _render(self, params: SamplerParameters) -> np.ndarray:
-        
-        # first, get the audio
-        samples = self.fetcher(params.url)
-        
-        # slice the audio if start and duration are provided
-        start_sample = params.start_seconds * self.samplerate
-        duration = (params.duration_seconds * self.samplerate) or (len(samples) * self.samplerate)
-        
-        samples = samples[int(start_sample): int(start_sample + duration)]
-        
-        if params.time_stretch:
-            samples = time_stretch(samples, params.time_stretch)
-        
-        if params.pitch_shift:
-            samples = pitch_shift(
-                samples, self.fetcher.samplerate, n_steps=params.pitch_shift)
-        
-        if params.filter:
-            samples = bandpass_filter(samples, params.filter)
-        
-        if params.reverb:
-            impulse_response = self.fetcher(params.reverb.url)
-            samples = reverb(samples, impulse_response, mix=params.reverb.mix)
-        
-        if params.gain:
-            samples = apply_envelope(samples, params.gain)
-        
-        if params.normalize:
-            samples = normalize(samples)
-        
-        return samples
+        return render(params, self.samplerate, self.fetcher)
     
     def play(self, params: SamplerParameters):
         raise NotImplementedError()

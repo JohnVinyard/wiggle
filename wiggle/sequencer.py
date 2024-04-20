@@ -54,6 +54,7 @@ class Sequencer(object):
         if params.normalize:
             canvas = canvas / (canvas.max() + 1e-8)
         
+        print(f'Generated {len(canvas) / self.samplerate} seconds of audio')
         return canvas
     
     def render(self, params: SequencerParams, flo: IO) -> IO:

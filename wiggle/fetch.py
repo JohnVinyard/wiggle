@@ -4,7 +4,7 @@ from soundfile import SoundFile
 from io import BytesIO
 import numpy as np
 import librosa
-
+from functools import lru_cache
 
 # TODO: Fix conjure typing
 collection = conjure.LmdbCollection(path='audio-data')
@@ -49,8 +49,15 @@ def fetch_audio_data_at_samplerate(url: str, samplerate: int) -> np.ndarray:
         print(f'Returned samples from url {url} with sample length {len(samples)}')
         return samples
 
+@lru_cache(maxsize=1024)
+def fetch_audio_data(url: str, samplerate: int):
+    return fetch_audio_data_at_samplerate(url, samplerate)
 
 class AudioFetcher(object):
+    """
+    Class for fetching audio over HTTP with multiple levels
+    of caching, both on-disk and in-memory.    
+    """
     def __init__(self, samplerate: int):
         super().__init__()
         self.samplerate = samplerate
@@ -59,4 +66,4 @@ class AudioFetcher(object):
         return self.fetch(url)
     
     def fetch(self, url: str):
-        return fetch_audio_data_at_samplerate(url, self.samplerate)
+        return fetch_audio_data(url, self.samplerate)
