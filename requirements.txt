@@ -1,0 +1,8 @@
+lmdb
+requests
+numpy
+librosa
+scipy
+soundfile
+zounds
+jsonschema
