@@ -49,6 +49,9 @@ def fetch_audio_data_at_samplerate(url: str, samplerate: int) -> np.ndarray:
         print(f'Returned samples from url {url} with sample length {len(samples)}')
         return samples
 
+# TODO: In-memory cache size should be configurable.  Also, the size of
+# cache items can be highly variable, so an approach that expresses
+# storage limits in bytes is probably more appropriate
 @lru_cache(maxsize=1024)
 def fetch_audio_data(url: str, samplerate: int):
     return fetch_audio_data_at_samplerate(url, samplerate)

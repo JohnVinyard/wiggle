@@ -1,5 +1,5 @@
-from abc import ABC
-from typing import IO, Literal, Tuple
+from abc import ABC, abstractmethod
+from typing import IO, Any, Tuple
 import numpy as np
 from scipy.interpolate import interp1d
 from wiggle.fetch import AudioFetcher
@@ -7,8 +7,37 @@ from wiggle.samplerparams import FilterParameters, GainParameters, SamplerParame
 from librosa.effects import time_stretch, pitch_shift
 from scipy.stats import norm
 from soundfile import SoundFile
-from matplotlib import pyplot as plt
 from functools import lru_cache
+
+class BaseSynth(ABC):
+    def __init__(self):
+        super().__init__()
+    
+    @property
+    @abstractmethod
+    def samplerate(self) -> int:
+        pass
+    
+    @abstractmethod
+    def render(self, params: Any) -> np.ndarray:
+        pass
+    
+    @abstractmethod
+    def play(self, params: Any) -> None:
+        pass
+    
+    def write(self, params: Any, flo: IO) -> IO:
+        samples = self.render(params)
+        with SoundFile(
+                flo, mode='w', 
+                samplerate=self.samplerate, 
+                format='wav', 
+                subtype='pcm_16', 
+                channels=1) as sf:
+            
+            sf.write(samples)
+        flo.seek(0)
+        return flo        
 
 
 def ensure_length(samples: np.ndarray, desired_length: int) -> np.ndarray:
@@ -55,7 +84,6 @@ def apply_envelope(samples: np.ndarray, params: GainParameters) -> np.ndarray:
     if np.any(deltas < 0):
         raise ValueError('Times must be monotonically increasing')
 
-    # points = np.sort(points, axis=0)
     func = interp1d(points[:, 1], points[:, 0], kind=get_interpolation(params.interpolation))
     evaluation_times = np.linspace(0, 1, len(samples))
     envelope = func(evaluation_times)
@@ -86,6 +114,9 @@ def reverb(dry: np.ndarray, impulse_response: np.ndarray, mix: float) -> np.ndar
     return samples
 
 
+# TODO: In-memory cache size should be configurable.  Also, the size of
+# cache items can be highly variable, so an approach that expresses
+# storage limits in bytes is probably more appropriate
 @lru_cache(maxsize=1024)
 def render(params: SamplerParameters, samplerate: int, fetcher: AudioFetcher) -> np.ndarray:
     # first, get the audio
@@ -119,7 +150,7 @@ def render(params: SamplerParameters, samplerate: int, fetcher: AudioFetcher) ->
     
     return samples
 
-class Sampler(object):
+class Sampler(BaseSynth):
     
     def __init__(self, fetcher: AudioFetcher):
         super().__init__()
@@ -129,20 +160,8 @@ class Sampler(object):
     def samplerate(self):
         return self.fetcher.samplerate
     
-    def _render(self, params: SamplerParameters) -> np.ndarray:
+    def render(self, params: SamplerParameters) -> np.ndarray:
         return render(params, self.samplerate, self.fetcher)
     
     def play(self, params: SamplerParameters):
         raise NotImplementedError()
-    
-    def render(self, params: SamplerParameters, flo: IO) -> None:
-        samples = self._render(params)
-        with SoundFile(
-                flo, mode='w', 
-                samplerate=self.samplerate, 
-                format='wav', 
-                subtype='pcm_16', 
-                channels=1) as sf:
-            
-            sf.write(samples)
-        flo.seek(0)
