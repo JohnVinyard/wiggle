@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
+from .sequencer import Event
+from copy import deepcopy
 
 allowed_interpolation_types = set([
     "linear", "quadratic", "cubic"
@@ -65,5 +67,9 @@ class SamplerParameters:
             self.normalize, 
             hash(self.gain), 
             hash(self.reverb)))
+    
+    def once(self, sampler: Any):
+        return Event(
+            gain=1, time=0, synth=sampler.render, params=deepcopy(self))
     
     

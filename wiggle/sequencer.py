@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Sequence
 import numpy as np
-from wiggle.synth import BaseSynth
+from wiggle.BaseSynth import BaseSynth
 from copy import deepcopy
 import numpy as np
 
@@ -29,15 +29,28 @@ triplet = FourFourInterval.triplet
 
 
 @dataclass
-class Event:
+class HasTime:
     time: float
+
+@dataclass
+class HasGain:
+    gain: float
+
+@dataclass
+class Event(HasTime, HasGain):
     synth: Callable
     params: Any
-    gain: float
     
     def translate(self, amt: float) -> 'Event':
         return Event(
             time=self.time + amt, 
+            synth=self.synth, 
+            params=deepcopy(self.params), 
+            gain=self.gain)
+    
+    def time_scale(self, factor: float):
+        return Event(
+            time = self.time * factor, 
             synth=self.synth, 
             params=deepcopy(self.params), 
             gain=self.gain)
@@ -66,6 +79,9 @@ class SequencerParams:
     speed: float
     normalize: bool = True
     
+    def once(self, synth: 'Sequencer') -> 'Event':
+        return Event(gain=1, time=0, synth=synth.render, params=deepcopy(self))
+    
     def __add__(self, other: 'SequencerParams') -> 'SequencerParams':
         """
         Overlay two patterns
@@ -74,6 +90,11 @@ class SequencerParams:
             events=[*self.events, *other.events], 
             speed=self.speed, 
             normalize=self.normalize)
+    
+    def time_scale(self, factor: float) -> 'SequencerParams':
+        c = deepcopy(self)
+        c.events = [e.time_scale(factor) for e in c.events]
+        return c
     
     def translate(self, amt: float) -> 'SequencerParams':
         c = deepcopy(self)

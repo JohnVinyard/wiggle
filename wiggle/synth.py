@@ -1,44 +1,12 @@
-from abc import ABC, abstractmethod
-from typing import IO, Any, Tuple
+from typing import Tuple
 import numpy as np
 from scipy.interpolate import interp1d
+from wiggle.BaseSynth import BaseSynth
 from wiggle.fetch import AudioFetcher
 from wiggle.samplerparams import FilterParameters, GainParameters, SamplerParameters, get_interpolation
 from librosa.effects import time_stretch, pitch_shift
 from scipy.stats import norm
-from soundfile import SoundFile
 from functools import lru_cache
-
-class BaseSynth(ABC):
-    def __init__(self):
-        super().__init__()
-    
-    @property
-    @abstractmethod
-    def samplerate(self) -> int:
-        pass
-    
-    @abstractmethod
-    def render(self, params: Any) -> np.ndarray:
-        pass
-    
-    @abstractmethod
-    def play(self, params: Any) -> None:
-        pass
-    
-    def write(self, params: Any, flo: IO) -> IO:
-        samples = self.render(params)
-        with SoundFile(
-                flo, mode='w', 
-                samplerate=self.samplerate, 
-                format='wav', 
-                subtype='pcm_16', 
-                channels=1) as sf:
-            
-            sf.write(samples)
-        flo.seek(0)
-        return flo        
-
 
 def ensure_length(samples: np.ndarray, desired_length: int) -> np.ndarray:
     if len(samples) == desired_length:

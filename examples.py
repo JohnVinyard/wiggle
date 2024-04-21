@@ -1,6 +1,6 @@
 from wiggle import Sampler, SamplerParameters, FilterParameters, \
     GainParameters, GainKeyPoint, ReverbParameters, AudioFetcher, \
-    Event, Sequencer, SequencerParams, eighth, quarter, sixteenth, whole, thirtysecond, measure
+    Sequencer, SequencerParams, eighth, quarter, thirtysecond, measure
 
 import numpy as np
 from copy import deepcopy
@@ -10,7 +10,6 @@ from wiggle.sequencer import repeat
 def sequencer_example():
     hihat = SamplerParameters(
         url='https://one-laptop-per-child.s3.amazonaws.com/tamtamDrumKits16/drum4tr808closed.wav',
-        start_seconds=0,
         reverb=ReverbParameters(
             url='https://matching-pursuit-reverbs.s3.amazonaws.com/St+Nicolaes+Church.wav',
             mix=0.9,
@@ -23,7 +22,6 @@ def sequencer_example():
     
     kick = SamplerParameters(
         url='https://one-laptop-per-child.s3.amazonaws.com/tamtam44old/drum1kick.wav',
-        start_seconds=0,
         reverb=ReverbParameters(
             url='https://matching-pursuit-reverbs.s3.amazonaws.com/St+Nicolaes+Church.wav',
             mix=0.5
@@ -43,16 +41,14 @@ def sequencer_example():
     sampler = Sampler(fetcher = AudioFetcher(samplerate))
     sequencer = Sequencer(samplerate)
     
-    hat_proto = Event(time=0, synth=sampler.render, params=hihat, gain=1)
     hat_params = SequencerParams(
-        events=repeat(every=eighth, fur=measure, evt=hat_proto),
+        events=repeat(every=eighth, fur=measure, evt=hihat.once(sampler)),
         speed=speed,
         normalize=True) >> thirtysecond
     
 
-    kick_proto = Event(time=0, synth=sampler.render, params=kick, gain=1)
     kick_params = SequencerParams(
-        events=repeat(every=quarter, fur=measure, evt=kick_proto),
+        events=repeat(every=quarter, fur=measure, evt=kick.once(sampler)),
         speed=speed,
         normalize=True
     )
@@ -61,9 +57,8 @@ def sequencer_example():
     sequencer_params = hat_params + kick_params
     
     # repeat the entire pattern four times
-    pattern_proto = Event(time=0, synth=sequencer.render, params=sequencer_params, gain=1)
     seq_params = SequencerParams(
-        events=repeat(every=measure, fur=measure * 4, evt=pattern_proto),
+        events=repeat(every=measure, fur=measure * 4, evt=sequencer_params.once(sequencer)),
         speed=speed,
         normalize=True
     )
@@ -71,7 +66,7 @@ def sequencer_example():
     # TODO: nice way to visit each node in the graph and transform
     echoed = deepcopy(seq_params.events)
     for echo in echoed:
-        echo.time = echo.time + np.random.uniform(0, 0.1)
+        echo.time = echo.time + np.random.uniform(0, 0.2)
         echo.gain = np.random.uniform(0.01, 0.4)
     echoed_params = SequencerParams(echoed, speed=speed, normalize=sequencer_params.normalize)
     
