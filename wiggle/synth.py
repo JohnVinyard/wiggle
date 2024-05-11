@@ -130,6 +130,3 @@ class Sampler(BaseSynth):
     
     def render(self, params: SamplerParameters) -> np.ndarray:
         return render(params, self.samplerate, self.fetcher)
-    
-    def play(self, params: SamplerParameters):
-        raise NotImplementedError()

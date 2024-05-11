@@ -12,7 +12,7 @@ def sequencer_example():
         url='https://one-laptop-per-child.s3.amazonaws.com/tamtamDrumKits16/drum4tr808closed.wav',
         reverb=ReverbParameters(
             url='https://matching-pursuit-reverbs.s3.amazonaws.com/St+Nicolaes+Church.wav',
-            mix=0.9,
+            mix=0.1,
         ),
         filter=FilterParameters(
             center_frequency=0.1,
@@ -72,8 +72,7 @@ def sequencer_example():
     
     top_level_params = seq_params + echoed_params
     
-    with open('result.wav', 'wb') as f:
-        sequencer.write(top_level_params, f)
+    sequencer.play(top_level_params)
 
 
 def sampler_example():

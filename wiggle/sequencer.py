@@ -155,9 +155,5 @@ class Sequencer(BaseSynth):
             canvas = canvas / (canvas.max() + 1e-8)
         
         print(f'Generated {len(canvas) / self.samplerate} seconds of audio')
-        return canvas
-    
-    def play(self, params: SequencerParams):
-        raise NotImplementedError()
-    
+        return canvas    
     
