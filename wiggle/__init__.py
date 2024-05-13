@@ -8,4 +8,4 @@ from .samplerparams import \
     SamplerParameters, ReverbParameters, GainParameters, GainKeyPoint, \
     FilterParameters
 from .fetch import AudioFetcher
-from .synths import list_synths
+from .synths import list_synths, get_synths_by_id, get_synths_by_name

@@ -5,7 +5,7 @@ from io import BytesIO
 import numpy as np
 import librosa
 from functools import lru_cache
-from typing import IO
+from typing import IO, Protocol
 
 # TODO: Fix conjure typing
 # TODO: Make sure that the path is configurable
@@ -80,7 +80,12 @@ def fetch_audio_data_at_samplerate(url: str, samplerate: int) -> np.ndarray:
 def fetch_audio_data(url: str, samplerate: int):
     return fetch_audio_data_at_samplerate(url, samplerate)
 
-class AudioFetcher(object):
+
+class HasSamplerate(Protocol):
+    samplerate: int
+
+
+class AudioFetcher(HasSamplerate):
     """
     Class for fetching audio over HTTP with multiple levels
     of caching, both on-disk and in-memory.    

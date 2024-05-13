@@ -2,7 +2,7 @@ from unittest import TestCase
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
 
-from wiggle.synths import list_synths
+from wiggle.synths import get_synths_by_id, get_synths_by_name, list_synths
 
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
@@ -73,3 +73,17 @@ class Tests(TestCase):
     def test_list_synths_returns_items_with_correct_samplerate(self):
         synths = list_synths(FakeAudioFetcher())
         self.assertTrue(all([s.samplerate == 22050 for s in synths]))
+    
+    def test_can_get_synth_by_id(self):
+        synth = get_synths_by_id(FakeAudioFetcher(), 1)
+        self.assertEqual(synth.name, 'sampler')
+    
+    def test_can_get_synth_by_name(self):
+        synth = get_synths_by_name(FakeAudioFetcher(), 'sampler')
+        self.assertEqual(synth.id, 1)
+    
+    def test_errant_id_returns_key_error(self):
+        self.assertRaises(KeyError, lambda: get_synths_by_id(FakeAudioFetcher(), 9999))
+    
+    def test_errant_nane_returns_key_error(self):
+        self.assertRaises(KeyError, lambda: get_synths_by_name(FakeAudioFetcher(), 'blah'))
