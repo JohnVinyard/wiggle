@@ -1,7 +1,7 @@
 from wiggle.basesynth import BaseSynth
 from wiggle.fetch import AudioFetcher
 from wiggle.sequencer import Sequencer
-from wiggle.synth import Sampler
+from wiggle.sampler import Sampler
 from wiggle.synthtype import SynthType
 from typing import Any, IO, Union
 import numpy as np

@@ -2,6 +2,8 @@ from unittest import TestCase
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
 
+from wiggle.synths import list_synths
+
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
         super().__init__(22050)
@@ -63,3 +65,11 @@ class Tests(TestCase):
         
         # sampler produces 9 seconds of audio, which begins at second 1
         self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
+    
+    def test_list_synths_returns_two_items(self):
+        synths = list_synths(FakeAudioFetcher())
+        self.assertEqual(2, len(synths))
+    
+    def test_list_synths_returns_items_with_correct_samplerate(self):
+        synths = list_synths(FakeAudioFetcher())
+        self.assertTrue(all([s.samplerate == 22050 for s in synths]))
