@@ -4,11 +4,17 @@
   "title": "Sequencer input model",
   "description": "TODO",
   "properties": {
+    "speed": {
+      "type": "number",
+      "minimum": 0
+    },
+    "normalize": {
+      "type": "boolean"
+    },
     "events": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {}
+        "type": "object"
       }
     }
   },

@@ -95,17 +95,18 @@ class SamplerParameters(DictSerializable):
             gain=1, time=0, synth=sampler.render, params=deepcopy(self))
 
     def to_dict(self) -> dict:
-        return dict(
+        d = dict(
             url=self.url,
             start_seconds=self.start_seconds,
             duration_seconds=self.duration_seconds,
-            time_stretch=self.time_stretch,
-            pitch_shift=self.pitch_shift,
-            filter=(self.filter or NullObject()).to_dict(),
+            time_stretch=self.time_stretch or None,
+            pitch_shift=self.pitch_shift or None,
+            filter=self.filter.to_dict() if self.filter is not None else None,
             normalize=self.normalize,
-            gain=(self.gain or NullObject()).to_dict(),
-            reverb=(self.reverb or NullObject()).to_dict()
+            gain=self.gain.to_dict() if self.gain is not None else None,
+            reverb=self.reverb.to_dict() if self.reverb is not None else None
         )
+        return {k: v for k, v in d.items() if v is not None}
 
     
     

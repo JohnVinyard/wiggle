@@ -1,5 +1,5 @@
 from unittest import TestCase
-from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher
+from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
 
 class FakeAudioFetcher(AudioFetcher):
@@ -7,10 +7,10 @@ class FakeAudioFetcher(AudioFetcher):
         super().__init__(22050)
     
     def __call__(self, url):
-        return np.random.uniform(-1, 1, (2**15))
+        return np.random.uniform(-1, 1, 22050 * 30)
     
     def fetch(self, url):
-        return np.random.uniform(-1, 1, (2**15))
+        return np.random.uniform(-1, 1, 22050 * 30)
 
 class Tests(TestCase):
     
@@ -32,11 +32,34 @@ class Tests(TestCase):
             ValueError, 
             lambda: sampler.render(SamplerParameters(url='https://example.com/sound', start_seconds=-1)))
     
-    def test_sampler_produces_audio(self):
-        self.fail()
-    
     def test_returns_validation_error_for_sequencer(self):
-        self.fail()
+        sequencer = Sequencer(22050)
+        self.assertRaises(
+            ValueError,
+            lambda: sequencer.render(SequencerParams(speed=-1, normalize=False, events=[]))
+        )
+    
+    def test_sampler_produces_audio(self):
+        fetcher = FakeAudioFetcher()
+        sampler = Sampler(fetcher)
+        samples = sampler.render(SamplerParameters(
+            url='https://example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10))
+        self.assertEqual(samples.shape, (fetcher.samplerate * 10,))
+    
         
     def test_sequencer_returns_audio(self):
-        self.fail()
+        fetcher = FakeAudioFetcher()
+        sampler = Sampler(FakeAudioFetcher())
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        event = Event(gain=1, time=1, synth=sampler, params=sampler_params)
+        sequencer = Sequencer(22050)
+        sequencer_params = SequencerParams(events=[event], speed=1, normalize=True)
+        samples = sequencer.render(sequencer_params)
+        
+        # sampler produces 9 seconds of audio, which begins at second 1
+        self.assertEqual(samples.shape, (fetcher.samplerate * 11,))

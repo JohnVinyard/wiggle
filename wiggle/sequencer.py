@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Sequence, Union
 import numpy as np
-from wiggle.basesynth import BaseSynth, DictSerializable
+from wiggle.basesynth import BaseSynth, DictSerializable, HasId
 from copy import deepcopy
 import numpy as np
 
@@ -38,8 +38,8 @@ class HasGain:
 
 @dataclass
 class Event(HasTime, HasGain):
-    synth: Callable
-    params: Any
+    synth: Union[Callable, HasId]
+    params: DictSerializable
     
     def translate(self, amt: float) -> 'Event':
         return Event(
@@ -60,6 +60,11 @@ class Event(HasTime, HasGain):
     
     def __rshift__(self, other: float) -> 'Event':
         return self.translate(other)
+    
+    def to_dict(self):
+        return dict(
+            synth=self.synth.id, 
+            params=self.params.to_dict())
     
 
 
@@ -114,10 +119,10 @@ class SequencerParams(DictSerializable):
         return transformed
 
     def to_dict(self) -> dict:
-        raise NotImplementedError
-
-    
-    
+        return dict(
+            speed=self.speed, 
+            normalize=self.normalize, 
+            events=[e.to_dict() for e in self.events])
 
 
 class Sequencer(BaseSynth):

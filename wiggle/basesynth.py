@@ -14,6 +14,12 @@ class DictSerializable(Protocol):
         raise NotImplementedError('')
 
 
+class HasId(Protocol):
+    @property
+    def id(self):
+        raise NotImplementedError('')
+
+
 class BaseSynth(ABC):
     def __init__(self):
         super().__init__()
@@ -49,6 +55,9 @@ class BaseSynth(ABC):
     @abstractmethod
     def samplerate(self) -> int:
         pass
+    
+    def __call__(self, params: Any) -> np.ndarray:
+        return self.render(params)
 
     @abstractmethod
     def render(self, params: Any) -> np.ndarray:
