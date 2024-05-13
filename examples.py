@@ -105,11 +105,9 @@ def sampler_example():
         )
     )
         
-    
-    
     with open('result.wav', 'wb') as f:
         sampler.write(params, f)
-    
+
 
 if __name__ == '__main__':
     sequencer_example()
