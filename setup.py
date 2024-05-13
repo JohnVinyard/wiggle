@@ -16,7 +16,7 @@ with open('requirements.txt', 'r') as f:
     requirements = f.readlines()
 
 setup(
-    name='conjure',
+    name=package_name,
     version=version,
     url=f'https://github.com/JohnVinyard/{package_name}',
     author='John Vinyard',

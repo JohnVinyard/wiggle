@@ -1,3 +1,6 @@
 *.wav
 *.mdb
 *.pyc
+/build/*
+/dist/*
+*.info
