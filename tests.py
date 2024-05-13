@@ -63,7 +63,7 @@ class Tests(TestCase):
         sequencer_params = SequencerParams(events=[event], speed=1, normalize=True)
         samples = sequencer.render(sequencer_params)
         
-        # sampler produces 9 seconds of audio, which begins at second 1
+        # sampler produces 10 seconds of audio, which begins at second 1
         self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
     
     def test_list_synths_returns_two_items(self):

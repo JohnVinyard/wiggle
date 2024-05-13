@@ -1,10 +1,12 @@
 from setuptools import setup
 import re
 
+package_name = 'wiggle'
+
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-with open('conjure/__init__.py', 'r') as fd:
+with open(f'{package_name}/__init__.py', 'r') as fd:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
         fd.read(),
@@ -16,18 +18,18 @@ with open('requirements.txt', 'r') as f:
 setup(
     name='conjure',
     version=version,
-    url='https://github.com/JohnVinyard/wiggle',
+    url=f'https://github.com/JohnVinyard/{package_name}',
     author='John Vinyard',
     author_email='john.vinyard@gmail.com',
     long_description=long_description,
-    packages=['wiggle'],
-    download_url=f'https://github.com/jvinyard/wiggle/tarball/{version}',
+    packages=[package_name],
+    download_url=f'https://github.com/jvinyard/{package_name}/tarball/{version}',
     requires=requirements,
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
     include_package_data=True,
     package_data={
-        '': ['sampler.json']
+        '': ['sampler.json', 'sequencer.json']
     },
 )

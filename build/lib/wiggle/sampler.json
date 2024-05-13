@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Sampler input model",
+  "description": "TODO",
+  "properties": {
+    "url": {
+      "title": "URL",
+      "type": "string",
+      "pattern": ""
+    },
+    "start_seconds": {
+      "title": "Start time",
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "duration_seconds": {
+      "title": "Duration in seconds",
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "time_stretch": {
+        "title": "Time-stretch",
+        "type": "number",
+        "minimum": 0,
+        "maximum": 2
+    },
+    "pitch_shift": {
+        "title": "Pitch-shift",
+        "type": "number",
+        "minimum": -12,
+        "maximum": 12
+    },
+    "filter": {
+      "title": "Bandpass Filter",
+      "type": "object",
+      "properties": {
+        "center_frequency": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 22000
+        },
+        "bandwidth": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 22000
+        }
+      },
+      "required": ["center_frequency_hertz", "bandwidth_hertz"]
+    },
+    "normalize": {
+      "title": "Normalize",
+      "type": "boolean"
+    },
+    "gain": {
+      "title": "Gain parameters",
+      "type": "object",
+      "properties": {
+        "keypoints": {
+          "title": "Key Points",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "time_seconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "gain_value": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": ["time_seconds", "gain_value"]
+          }
+        },
+        "interpolation": {
+          "type": "string",
+          "enum": ["linear", "quadratic", "cubic"]
+        }
+      },
+      "required": ["keypoints", "interpolation"]
+    },
+    "reverb": {
+      "title": "Reverb parameters",
+      "type": "object",
+      "properties": {
+        "mix": {
+          "title": "Mix",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "url": {
+          "title": "Reverb name",
+          "type": "string"
+        }
+      },
+      "required": ["url", "mix"]
+    }
+  },
+  "required": ["url"]
+}
