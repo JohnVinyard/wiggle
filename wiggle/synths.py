@@ -4,7 +4,6 @@ from .sampler import Sampler
 from .basesynth import BaseSynth
 from .fetch import AudioFetcher
 
-
 def materialize_synths(fetcher: AudioFetcher) -> List[BaseSynth]:
     return [
         Sampler(fetcher),
@@ -21,7 +20,6 @@ def get_synths_by_id(fetcher: AudioFetcher, id: int) -> BaseSynth:
         raise KeyError(id)
     
     return synth[0]
-
 
 def get_synths_by_name(fetcher: AudioFetcher, name: str) -> BaseSynth:
     synths = list_synths(fetcher)

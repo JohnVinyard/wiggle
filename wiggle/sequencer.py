@@ -27,7 +27,6 @@ thirtysecond = FourFourInterval.thirtysecond
 sixtyfourth = FourFourInterval.sixtyfourth
 triplet = FourFourInterval.triplet
 
-
 @dataclass
 class HasTime:
     time: float
