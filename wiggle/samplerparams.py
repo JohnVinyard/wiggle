@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Optional, Sequence
+
+from wiggle.basesynth import DictSerializable
 from .sequencer import Event
 from copy import deepcopy
 
@@ -13,12 +15,22 @@ def get_interpolation(name: str) -> str:
     return name
 
 @dataclass
-class ReverbParameters:
+class NullObject(DictSerializable):
+    
+    def to_dict(self) -> dict:
+        return {}
+
+@dataclass
+class ReverbParameters(DictSerializable):
     url: str
     mix: float
     
     def __hash__(self) -> int:
         return hash((self.url, self.mix))
+
+    def to_dict(self) -> dict:
+        return self.__dict__
+
 
 @dataclass
 class FilterParameters:
@@ -27,6 +39,9 @@ class FilterParameters:
     
     def __hash__(self) -> int:
         return hash((self.center_frequency, self.bandwidth))
+    
+    def to_dict(self) -> dict:
+        return self.__dict__
 
 @dataclass
 class GainKeyPoint:
@@ -35,6 +50,9 @@ class GainKeyPoint:
     
     def __hash__(self) -> int:
         return hash((self.time_seconds, self.gain_value))
+    
+    def to_dict(self) -> dict:
+        return self.__dict__
 
 @dataclass
 class GainParameters:
@@ -43,9 +61,12 @@ class GainParameters:
     
     def __hash__(self) -> int:
         return hash((self.interpolation, *[hash(k) for k in self.keypoints]))
+    
+    def to_dict(self) -> dict:
+        return self.__dict__
 
 @dataclass
-class SamplerParameters:
+class SamplerParameters(DictSerializable):
     url: str
     start_seconds: float = 0
     duration_seconds: float = 0
@@ -55,6 +76,7 @@ class SamplerParameters:
     normalize: Optional[bool] = None
     gain: Optional[GainParameters] = None
     reverb: Optional[ReverbParameters] = None
+
     
     def __hash__(self) -> int:
         return hash((
@@ -71,5 +93,19 @@ class SamplerParameters:
     def once(self, sampler: Any):
         return Event(
             gain=1, time=0, synth=sampler.render, params=deepcopy(self))
+
+    def to_dict(self) -> dict:
+        return dict(
+            url=self.url,
+            start_seconds=self.start_seconds,
+            duration_seconds=self.duration_seconds,
+            time_stretch=self.time_stretch,
+            pitch_shift=self.pitch_shift,
+            filter=(self.filter or NullObject()).to_dict(),
+            normalize=self.normalize,
+            gain=(self.gain or NullObject()).to_dict(),
+            reverb=(self.reverb or NullObject()).to_dict()
+        )
+
     
     

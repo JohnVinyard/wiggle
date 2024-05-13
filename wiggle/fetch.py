@@ -5,9 +5,32 @@ from io import BytesIO
 import numpy as np
 import librosa
 from functools import lru_cache
+from typing import IO
 
 # TODO: Fix conjure typing
 collection = conjure.LmdbCollection(path='audio-data')
+
+def audio_io(
+        samples: np.ndarray, 
+        samplerate: int, 
+        format: str = 'WAV', 
+        subtype: str = 'PCM_16'):
+    io = BytesIO()
+    
+    with SoundFile(io, mode='w', samplerate=samplerate, format=format, subtype=subtype) as sf:
+        sf.write(samples)
+    
+    io.seek(0)
+    return io
+
+def audio_bytes(
+        samples: np.ndarray, 
+        samplerate: int, 
+        format: str='WAV', 
+        subtype: str='PCM_16') -> bytes:
+    
+    io = audio_io(samples, samplerate, format, subtype)
+    return io.read()
 
 @conjure.conjure(
     content_type='application/octet-stream',
@@ -61,12 +84,31 @@ class AudioFetcher(object):
     Class for fetching audio over HTTP with multiple levels
     of caching, both on-disk and in-memory.    
     """
-    def __init__(self, samplerate: int):
+    def __init__(self, samplerate: int, format: str='WAV', subtype: str='PCM_16'):
         super().__init__()
         self.samplerate = samplerate
+        self.format = format
+        self.subtype = subtype
     
-    def __call__(self, url: str):
+    def __call__(self, url: str) -> np.ndarray:
         return self.fetch(url)
     
-    def fetch(self, url: str):
+    def fetch(self, url: str) -> np.ndarray:
         return fetch_audio_data(url, self.samplerate)
+    
+    def fetch_io(self, url: str) -> IO:
+        samples = self.fetch(url)
+        return audio_io(
+            samples, 
+            self.samplerate, 
+            format=self.format, 
+            subtype=self.subtype)
+    
+    def fetch_bytes(self, url: str) -> bytes:
+        samples = self.fetch(url)
+        return audio_bytes(
+            samples, 
+            self.samplerate, 
+            format=self.format, 
+            subtype=self.subtype)
+        

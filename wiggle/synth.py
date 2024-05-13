@@ -1,7 +1,7 @@
 from typing import Tuple
 import numpy as np
 from scipy.interpolate import interp1d
-from wiggle.BaseSynth import BaseSynth
+from wiggle.basesynth import BaseSynth
 from wiggle.fetch import AudioFetcher
 from wiggle.samplerparams import FilterParameters, GainParameters, SamplerParameters, get_interpolation
 from librosa.effects import time_stretch, pitch_shift
@@ -129,4 +129,13 @@ class Sampler(BaseSynth):
         return self.fetcher.samplerate
     
     def render(self, params: SamplerParameters) -> np.ndarray:
+        self.validate(params)
         return render(params, self.samplerate, self.fetcher)
+
+    @property
+    def name(self) -> str:
+        return 'sampler'
+
+    @property
+    def id(self) -> int:
+        return 1

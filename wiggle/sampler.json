@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "Input model for the sampler",
+  "title": "Sampler input model",
   "description": "TODO",
   "properties": {
     "url": {

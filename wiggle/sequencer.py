@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 import numpy as np
-from wiggle.BaseSynth import BaseSynth
+from wiggle.basesynth import BaseSynth, DictSerializable
 from copy import deepcopy
 import numpy as np
 
@@ -73,7 +73,7 @@ class TransformContext:
 Transform = Callable[['SequencerParams', TransformContext], 'SequencerParams']
 
 @dataclass
-class SequencerParams:
+class SequencerParams(DictSerializable):
     # TODO: how to handle circular/nested type definitions?
     events: Sequence[Event]
     speed: float
@@ -112,6 +112,10 @@ class SequencerParams:
         ctxt = TransformContext()
         transformed = t(c, ctxt)
         return transformed
+
+    def to_dict(self) -> dict:
+        raise NotImplementedError
+
     
     
 
@@ -122,6 +126,14 @@ class Sequencer(BaseSynth):
         self._samplerate = samplerate
     
     @property
+    def name(self) -> str:
+        return 'sequencer'
+
+    @property
+    def id(self) -> int:
+        return 2
+        
+    @property
     def samplerate(self):
         return self._samplerate
     
@@ -130,6 +142,8 @@ class Sequencer(BaseSynth):
     
     
     def render(self, params: SequencerParams) -> np.ndarray:
+        self.validate(params)
+        
         renders: Sequence[np.ndarray] = [event.synth(event.params) * event.gain for event in params.events]
         
         end_times = [
@@ -155,5 +169,8 @@ class Sequencer(BaseSynth):
             canvas = canvas / (canvas.max() + 1e-8)
         
         print(f'Generated {len(canvas) / self.samplerate} seconds of audio')
-        return canvas    
+        return canvas
+
+    
+    
     
