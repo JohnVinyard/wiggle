@@ -28,7 +28,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
-    requirements=[
+    install_requires=[
         'lmdb',
         'requests',
         'numpy',
