@@ -28,6 +28,15 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
+    requirements=[
+        'lmdb',
+        'requests',
+        'numpy',
+        'librosa',
+        'scipy',
+        'soundfile',
+        'jsonschema'
+    ],
     include_package_data=True,
     package_data={
         '': ['sampler.json', 'sequencer.json']
