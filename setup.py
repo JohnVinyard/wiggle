@@ -28,6 +28,15 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
+    setup_requires=[
+        'lmdb',
+        'requests',
+        'numpy',
+        'librosa',
+        'scipy',
+        'soundfile',
+        'jsonschema'
+    ],
     install_requires=[
         'lmdb',
         'requests',
