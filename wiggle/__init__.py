@@ -9,3 +9,4 @@ from .samplerparams import \
     FilterParameters
 from .fetch import AudioFetcher
 from .synths import list_synths, get_synths_by_id, get_synths_by_name
+from .basesynth import write_samples, encode_samples

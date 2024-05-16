@@ -23,6 +23,35 @@ def iter_sample_chunks(arr: np.ndarray, chunksize: int = 1024):
     for i in range(0, len(arr), chunksize):
         yield arr[i: i + chunksize]
 
+def write_samples(
+        flo: IO, 
+        samples: np.ndarray, 
+        samplerate: int, 
+        format='WAV', 
+        subtype='PCM_16') -> IO:
+    
+    with SoundFile(flo, 'w', samplerate=samplerate, format=format, subtype=subtype) as sf:
+        for chunk in iter_sample_chunks(samples):
+            flo.write(chunk)
+    
+    return flo
+
+
+def encode_samples(
+        samples: np.ndarray, 
+        samplerate: int, 
+        format='WAV', 
+        subtype='PCM_16') -> bytes:
+    
+    io = write_samples(
+        BytesIO(), 
+        samples, 
+        samplerate=samplerate, 
+        format=format, 
+        subtype=subtype)
+    io.seek(0)
+    return io.read()
+
 class BaseSynth(ABC):
     def __init__(self):
         super().__init__()
