@@ -15,7 +15,10 @@ def materialize_synths(fetcher: AudioFetcher) -> List[BaseSynth]:
 
 def get_synth(fetcher: AudioFetcher, id_or_name: Union[str, int]) -> BaseSynth:
     if isinstance(id_or_name, str):
-        return get_synth_by_name(fetcher, id_or_name)
+        try:
+            return get_synth_by_id(fetcher, int(id_or_name))
+        except ValueError:
+            return get_synth_by_name(fetcher, id_or_name)
     elif isinstance(id_or_name, int):
         return get_synth_by_id(fetcher, id_or_name)
     else:

@@ -154,6 +154,10 @@ class Tests(TestCase):
         synth = get_synth(FakeAudioFetcher(), 'sequencer')
         self.assertEqual(synth.id, 2)
     
+    def test_can_get_synth_by_str_id(self):
+        synth = get_synth(FakeAudioFetcher(), '1')
+        self.assertEqual(synth.id, 1)
+    
     def test_can_get_synth_by_name(self):
         synth = get_synth_by_name(FakeAudioFetcher(), 'sampler')
         self.assertEqual(synth.id, 1)
