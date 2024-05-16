@@ -19,6 +19,9 @@ class HasId(Protocol):
     def id(self):
         raise NotImplementedError('')
 
+def iter_sample_chunks(arr: np.ndarray, chunksize: int = 1024):
+    for i in range(0, len(arr), chunksize):
+        yield arr[i: i + chunksize]
 
 class BaseSynth(ABC):
     def __init__(self):
@@ -85,6 +88,8 @@ class BaseSynth(ABC):
                 subtype='pcm_16',
                 channels=1) as sf:
 
-            sf.write(samples)
+            for chunk in iter_sample_chunks(samples, chunksize=2048):
+                sf.write(chunk)
+        
         flo.seek(0)
         return flo
