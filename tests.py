@@ -1,7 +1,7 @@
 from unittest import TestCase
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
-from wiggle.synths import get_synth_by_id, get_synth_by_name, list_synths, render
+from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render
 
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
@@ -145,6 +145,14 @@ class Tests(TestCase):
     def test_can_get_synth_by_id(self):
         synth = get_synth_by_id(FakeAudioFetcher(), 1)
         self.assertEqual(synth.name, 'sampler')
+        
+    def test_can_get_synth_by_inferred_id(self):
+        synth = get_synth(FakeAudioFetcher(), 1)
+        self.assertEqual(synth.id, 1)
+    
+    def test_can_get_synth_by_inferred_name(self):
+        synth = get_synth(FakeAudioFetcher(), 'sequencer')
+        self.assertEqual(synth.id, 2)
     
     def test_can_get_synth_by_name(self):
         synth = get_synth_by_name(FakeAudioFetcher(), 'sampler')

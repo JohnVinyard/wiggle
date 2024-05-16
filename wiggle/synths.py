@@ -13,6 +13,14 @@ def materialize_synths(fetcher: AudioFetcher) -> List[BaseSynth]:
         Sequencer(fetcher.samplerate)
     ]
 
+def get_synth(fetcher: AudioFetcher, id_or_name: Union[str, int]) -> BaseSynth:
+    if isinstance(id_or_name, str):
+        return get_synth_by_name(fetcher, id_or_name)
+    elif isinstance(id_or_name, int):
+        return get_synth_by_id(fetcher, id_or_name)
+    else:
+        raise ValueError(f'id_or_name must be str or int but was {id_or_name.__class__.__name__}')
+
 def list_synths(fetcher: AudioFetcher) -> List[BaseSynth]:
     return materialize_synths(fetcher)
 
