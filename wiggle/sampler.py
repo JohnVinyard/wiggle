@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Set, Tuple
 import numpy as np
 from scipy.interpolate import interp1d
 from wiggle.basesynth import BaseSynth
@@ -123,6 +123,12 @@ class Sampler(BaseSynth):
     def __init__(self, fetcher: AudioFetcher):
         super().__init__()
         self.fetcher = fetcher
+    
+    def __eq__(self, other: 'Sampler'):
+        return self.id == other.id
+    
+    def __hash__(self) -> int:
+        return hash(self.id)
         
     @property
     def samplerate(self):
@@ -139,3 +145,4 @@ class Sampler(BaseSynth):
     @property
     def id(self) -> int:
         return 1
+

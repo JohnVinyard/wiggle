@@ -3,21 +3,20 @@ import numpy as np
 from soundfile import SoundFile
 from io import BytesIO
 from abc import ABC, abstractmethod
-from typing import IO, Any, Protocol
+from typing import IO, Any, Protocol, Set
 import jsonschema
 import jsonschema.exceptions
 import os
 import json
 
-class DictSerializable(Protocol):
-    def to_dict(self) -> dict:
-        raise NotImplementedError('')
-
+from .dictserialiazable import DictSerializable
 
 class HasId(Protocol):
     @property
     def id(self):
         raise NotImplementedError('')
+
+
 
 def iter_sample_chunks(arr: np.ndarray, chunksize: int = 1024):
     for i in range(0, len(arr), chunksize):

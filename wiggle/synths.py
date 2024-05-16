@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Dict, List, Union
 
 from wiggle.samplerparams import SamplerParameters
 from .sequencer import Sequencer, SequencerParams
@@ -12,6 +12,19 @@ def materialize_synths(fetcher: AudioFetcher) -> List[BaseSynth]:
         Sampler(fetcher),
         Sequencer(fetcher.samplerate)
     ]
+
+Params = Union[SequencerParams, SamplerParameters]
+
+params_by_synth_id = {
+    1: SamplerParameters,
+    2: SequencerParams
+}
+
+params_by_synth_name = {
+    'sampler': SamplerParameters,
+    'sequencer': SequencerParams
+}
+
 
 def get_synth(fetcher: AudioFetcher, id_or_name: Union[str, int]) -> BaseSynth:
     if isinstance(id_or_name, str):
@@ -57,4 +70,13 @@ def render(
     
     samples = synth.render(params)
     return samples
+
+
+def restore_params_from_dict(synth_id: Union[str, int], data: dict) -> Params:
+    try:
+        params_class = params_by_synth_id[int(synth_id)]
+    except (KeyError, ValueError) as e:
+        params_class = params_by_synth_name[str(synth_id)]
     
+    params = params_class.from_dict(data)
+    return params

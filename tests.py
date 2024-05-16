@@ -1,7 +1,9 @@
 from unittest import TestCase
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
-from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render
+from wiggle.sourcematerial import SourceMaterial
+from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render, restore_params_from_dict
+import json
 
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
@@ -133,6 +135,92 @@ class Tests(TestCase):
         samples = render(synth, sequencer_params, fetcher)
         self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
     
+    def test_can_roundtrip_serialize_sampler_params(self):
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        d = sampler_params.to_dict()
+        j = json.dumps(d)
+        d = json.loads(j)
+        
+        restored = SamplerParameters.from_dict(d)
+        
+        self.assertEqual(sampler_params, restored)
+    
+    def test_can_roundtrip_serialize_sequencer_params(self):
+        sampler = Sampler(FakeAudioFetcher())
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        event = Event(gain=1, time=1, synth=sampler, params=sampler_params)
+        event2 = Event(gain=1, time=2, synth=sampler, params=sampler_params)
+        sequencer_params = SequencerParams(events=[event, event2], speed=1, normalize=True)
+        
+        d = sequencer_params.to_dict()
+        j = json.dumps(d)
+        d = json.loads(j)
+        
+        fetcher = AudioFetcher(22050)
+        restored = SequencerParams.from_dict(
+            d, 
+            restore_params_from_dict, 
+            lambda id: get_synth(fetcher, id))
+        
+        self.assertEqual(sequencer_params, restored)
+    
+    def test_can_get_source_material_from_sampler(self):
+        url = 'https//example.com/sound'
+        sampler_params = SamplerParameters(
+            url=url, 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        sm = sampler_params.source_material
+        
+        self.assertEqual(1, len(sm))
+        self.assertTrue(SourceMaterial(url) in sm)
+    
+    def test_can_get_source_material_from_sequencer(self):
+        
+        url1 = 'https//example.com/sound'
+        url2 = 'https//example.com/sound2'
+        url3 = 'https//example.com/sound3'
+        
+        sampler_params = SamplerParameters(
+            url=url1, 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        sampler_params2 = SamplerParameters(
+            url=url2, 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        sampler_params3 = SamplerParameters(
+            url=url3, 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        event = Event(gain=1, time=1, synth=1, params=sampler_params)
+        event2 = Event(gain=1, time=2, synth=1, params=sampler_params2)
+        sequencer_params = SequencerParams(events=[event, event2], speed=1, normalize=True)
+        
+        event2a = Event(gain=1, time=0, synth=2, params=sequencer_params)
+        
+        event3 = Event(gain=1, time=3, synth=1, params=sampler_params3)
+        
+        seq_params_top = SequencerParams(events=[event2a, event3], speed=1, normalize=True)
+        
+        display = json.dumps(seq_params_top.to_dict(), indent=4)
+        
+        sm = seq_params_top.source_material
+        
+        self.assertEqual(3, len(sm))
+        self.assertTrue(SourceMaterial(url1) in sm)
+        self.assertTrue(SourceMaterial(url2) in sm)
+        self.assertTrue(SourceMaterial(url3) in sm)
     
     def test_list_synths_returns_two_items(self):
         synths = list_synths(FakeAudioFetcher())
