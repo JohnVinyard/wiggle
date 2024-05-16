@@ -1,8 +1,7 @@
 from unittest import TestCase
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
 import numpy as np
-
-from wiggle.synths import get_synths_by_id, get_synths_by_name, list_synths
+from wiggle.synths import get_synth_by_id, get_synth_by_name, list_synths, render
 
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
@@ -66,6 +65,75 @@ class Tests(TestCase):
         # sampler produces 10 seconds of audio, which begins at second 1
         self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
     
+    def test_can_render_sampler_using_synth_name(self):
+        fetcher = FakeAudioFetcher()
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        samples = render('sampler', sampler_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 10,))
+    
+    def test_can_render_sampler_using_synth_id(self):
+        fetcher = FakeAudioFetcher()
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        samples = render(1, sampler_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 10,))
+    
+    def test_can_render_sampler_using_synth_instance(self):
+        fetcher = FakeAudioFetcher()
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        
+        synth = Sampler(fetcher)
+        samples = render(synth, sampler_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 10,))
+    
+    def test_can_render_sequencer_using_synth_name(self):
+        fetcher = FakeAudioFetcher()
+        sampler = Sampler(FakeAudioFetcher())
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        event = Event(gain=1, time=1, synth=sampler, params=sampler_params)
+        sequencer_params = SequencerParams(events=[event], speed=1, normalize=True)
+        samples = render('sequencer', sequencer_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
+    
+    def test_can_render_sequencer_using_synth_id(self):
+        fetcher = FakeAudioFetcher()
+        sampler = Sampler(FakeAudioFetcher())
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        event = Event(gain=1, time=1, synth=sampler, params=sampler_params)
+        sequencer_params = SequencerParams(events=[event], speed=1, normalize=True)
+        samples = render(2, sequencer_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
+    
+    def test_can_render_sequencer_using_synth_instance(self):
+        fetcher = FakeAudioFetcher()
+        sampler = Sampler(FakeAudioFetcher())
+        sampler_params = SamplerParameters(
+            url='https//example.com/sound', 
+            start_seconds=1, 
+            duration_seconds=10)
+        event = Event(gain=1, time=1, synth=sampler, params=sampler_params)
+        sequencer_params = SequencerParams(events=[event], speed=1, normalize=True)
+        synth = Sequencer(fetcher.samplerate)
+        samples = render(synth, sequencer_params, fetcher)
+        self.assertEqual(samples.shape, (fetcher.samplerate * 11,))
+    
+    
     def test_list_synths_returns_two_items(self):
         synths = list_synths(FakeAudioFetcher())
         self.assertEqual(2, len(synths))
@@ -75,15 +143,15 @@ class Tests(TestCase):
         self.assertTrue(all([s.samplerate == 22050 for s in synths]))
     
     def test_can_get_synth_by_id(self):
-        synth = get_synths_by_id(FakeAudioFetcher(), 1)
+        synth = get_synth_by_id(FakeAudioFetcher(), 1)
         self.assertEqual(synth.name, 'sampler')
     
     def test_can_get_synth_by_name(self):
-        synth = get_synths_by_name(FakeAudioFetcher(), 'sampler')
+        synth = get_synth_by_name(FakeAudioFetcher(), 'sampler')
         self.assertEqual(synth.id, 1)
     
     def test_errant_id_returns_key_error(self):
-        self.assertRaises(KeyError, lambda: get_synths_by_id(FakeAudioFetcher(), 9999))
+        self.assertRaises(KeyError, lambda: get_synth_by_id(FakeAudioFetcher(), 9999))
     
     def test_errant_nane_returns_key_error(self):
-        self.assertRaises(KeyError, lambda: get_synths_by_name(FakeAudioFetcher(), 'blah'))
+        self.assertRaises(KeyError, lambda: get_synth_by_name(FakeAudioFetcher(), 'blah'))
