@@ -1,5 +1,5 @@
 from unittest import TestCase
-from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event
+from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event, encode_samples
 import numpy as np
 from wiggle.sourcematerial import SourceMaterial
 from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render, restore_params_from_dict
@@ -255,3 +255,13 @@ class Tests(TestCase):
     
     def test_errant_nane_returns_key_error(self):
         self.assertRaises(KeyError, lambda: get_synth_by_name(FakeAudioFetcher(), 'blah'))
+    
+    def test_can_encode_mono_samples(self):
+        samples = np.random.uniform(-1, 1, (2**15,))
+        encoded_samples = encode_samples(samples, samplerate=22050)
+        self.assertGreater(len(encoded_samples), 0)
+    
+    def test_can_encode_stereo_channels(self):
+        samples = np.random.uniform(-1, 1, (2, 2**15,))
+        encoded_samples = encode_samples(samples, samplerate=22050)
+        self.assertGreater(len(encoded_samples), 0)

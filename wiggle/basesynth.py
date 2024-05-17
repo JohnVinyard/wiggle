@@ -17,10 +17,15 @@ class HasId(Protocol):
         raise NotImplementedError('')
 
 
-
 def iter_sample_chunks(arr: np.ndarray, chunksize: int = 1024):
     for i in range(0, len(arr), chunksize):
         yield arr[i: i + chunksize]
+
+
+def infer_channels(arr: np.ndarray):
+    if len(arr.shape) == 1:
+        return 1
+    return arr.shape[0]
 
 def write_samples(
         flo: IO, 
@@ -29,7 +34,13 @@ def write_samples(
         format='WAV', 
         subtype='PCM_16') -> IO:
     
-    with SoundFile(flo, 'w', samplerate=samplerate, format=format, subtype=subtype) as sf:
+    with SoundFile(
+            flo, 
+            'w', 
+            samplerate=samplerate, 
+            format=format, 
+            channels=infer_channels(samples),subtype=subtype) as sf:
+        
         for chunk in iter_sample_chunks(samples):
             flo.write(chunk)
     
