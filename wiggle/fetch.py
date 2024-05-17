@@ -1,5 +1,5 @@
 import requests
-import conjure
+# import conjure
 from soundfile import SoundFile
 from io import BytesIO
 import numpy as np
@@ -9,7 +9,7 @@ from typing import IO, Protocol
 
 # TODO: Fix conjure typing
 # TODO: Make sure that the path is configurable
-collection = conjure.LmdbCollection(path='audio-data')
+# collection = conjure.LmdbCollection(path='audio-data')
 
 def audio_io(
         samples: np.ndarray, 
@@ -33,16 +33,16 @@ def audio_bytes(
     io = audio_io(samples, samplerate, format, subtype)
     return io.read()
 
-@conjure.conjure(
-    content_type='application/octet-stream',
-    storage=collection,
-    func_identifier=conjure.LiteralFunctionIdentifier('fetchaudio'),
-    param_identifier=conjure.ParamsHash(),
-    serializer=conjure.IdentitySerializer(),
-    deserializer=conjure.IdentityDeserializer(),
-    prefer_cache=True,
-    read_from_cache_hook=lambda x: print(f'Reading from cache for url {x}')
-)
+# @conjure.conjure(
+#     content_type='application/octet-stream',
+#     storage=collection,
+#     func_identifier=conjure.LiteralFunctionIdentifier('fetchaudio'),
+#     param_identifier=conjure.ParamsHash(),
+#     serializer=conjure.IdentitySerializer(),
+#     deserializer=conjure.IdentityDeserializer(),
+#     prefer_cache=True,
+#     read_from_cache_hook=lambda x: print(f'Reading from cache for url {x}')
+# )
 def fetch_audio_from_url(url: str) -> bytes:
     resp = requests.get(url)
     resp.raise_for_status()
@@ -50,10 +50,10 @@ def fetch_audio_from_url(url: str) -> bytes:
     return resp.content
     
 
-@conjure.numpy_conjure(
-    storage=collection,
-    content_type='application/octet-stream',
-    read_hook=lambda x: print(f'Resampled version already cached'))
+# @conjure.numpy_conjure(
+#     storage=collection,
+#     content_type='application/octet-stream',
+#     read_hook=lambda x: print(f'Resampled version already cached'))
 def fetch_audio_data_at_samplerate(url: str, samplerate: int) -> np.ndarray:
     audio_bytes = fetch_audio_from_url(url)
     with SoundFile(BytesIO(audio_bytes)) as sf:
