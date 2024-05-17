@@ -25,7 +25,7 @@ def iter_sample_chunks(arr: np.ndarray, chunksize: int = 1024):
 def infer_channels(arr: np.ndarray):
     if len(arr.shape) == 1:
         return 1
-    return arr.shape[0]
+    return arr.shape[1]
 
 def write_samples(
         flo: IO, 
@@ -38,11 +38,12 @@ def write_samples(
             flo, 
             'w', 
             samplerate=samplerate, 
-            format=format, 
-            channels=infer_channels(samples),subtype=subtype) as sf:
+            channels=infer_channels(samples),
+            format=format,
+            subtype=subtype) as sf:
         
         for chunk in iter_sample_chunks(samples):
-            flo.write(chunk)
+            sf.write(chunk)
     
     return flo
 

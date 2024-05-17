@@ -1,9 +1,11 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event, encode_samples
 import numpy as np
 from wiggle.sourcematerial import SourceMaterial
 from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render, restore_params_from_dict
 import json
+from soundfile import SoundFile
+from io import BytesIO
 
 class FakeAudioFetcher(AudioFetcher):
     def __init__(self):
@@ -262,6 +264,24 @@ class Tests(TestCase):
         self.assertGreater(len(encoded_samples), 0)
     
     def test_can_encode_stereo_channels(self):
-        samples = np.random.uniform(-1, 1, (2, 2**15,))
+        samples = np.random.uniform(-1, 1, (2**15, 2))
         encoded_samples = encode_samples(samples, samplerate=22050)
         self.assertGreater(len(encoded_samples), 0)
+    
+    
+    def test_can_encode_and_decode_samples(self):
+        samples = np.random.uniform(-1, 1, (44100 * 10,))
+        encoded_sample_bytes = encode_samples(
+            samples, samplerate=44100, format='OGG', subtype='VORBIS')
+        
+        bio = BytesIO(encoded_sample_bytes)
+        bio.seek(0)
+        
+        with SoundFile(bio, mode='r') as sf:
+            retrieved = sf.read()
+        
+        self.assertEqual(len(samples), len(retrieved))
+        
+        
+        
+        
