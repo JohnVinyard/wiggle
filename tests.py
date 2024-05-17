@@ -1,6 +1,7 @@
 from unittest import TestCase, skip
 from wiggle import Sampler, Sequencer, SamplerParameters, SequencerParams, AudioFetcher, Event, encode_samples
 import numpy as np
+from wiggle.samplerparams import ReverbParameters
 from wiggle.sourcematerial import SourceMaterial
 from wiggle.synths import get_synth, get_synth_by_id, get_synth_by_name, list_synths, render, restore_params_from_dict
 import json
@@ -171,6 +172,25 @@ class Tests(TestCase):
             lambda id: get_synth(fetcher, id))
         
         self.assertEqual(sequencer_params, restored)
+    
+    def test_source_material_from_sampler_includes_convolution_url(self):
+        url = 'https//example.com/sound'
+        ir = 'https//example.com/ir'
+        
+        sampler_params = SamplerParameters(
+            url=url, 
+            start_seconds=1, 
+            duration_seconds=10,
+            reverb=ReverbParameters(
+                url=ir,
+                mix=0.6
+            ))
+        
+        sm = sampler_params.source_material
+        
+        self.assertEqual(2, len(sm))
+        self.assertTrue(SourceMaterial(url) in sm)
+        self.assertTrue(SourceMaterial(ir) in sm)
     
     def test_can_get_source_material_from_sampler(self):
         url = 'https//example.com/sound'

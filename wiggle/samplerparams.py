@@ -115,6 +115,11 @@ class SamplerParameters(DictSerializable):
     
     @property
     def source_material(self) -> Set[SourceMaterial]:
+        if self.reverb is not None:
+            return set([
+                SourceMaterial(url=self.url), 
+                SourceMaterial(url=self.reverb.url)])    
+        
         return set([SourceMaterial(url=self.url)])
     
     def __hash__(self) -> int:
