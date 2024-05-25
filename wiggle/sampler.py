@@ -92,6 +92,9 @@ def render(params: SamplerParameters, samplerate: int, fetcher: AudioFetcher) ->
     
     # slice the audio if start and duration are provided
     start_sample = params.start_seconds * samplerate
+    
+    # If the duration is zero, then we assume we'd like all available samples
+    # after the start
     duration = (params.duration_seconds * samplerate) or (len(samples) * samplerate)
     
     samples = samples[int(start_sample): int(start_sample + duration)]

@@ -149,8 +149,8 @@ class SamplerParameters(DictSerializable):
     def from_dict(data: dict) -> 'SamplerParameters':
         return SamplerParameters(
             url=data['url'],
-            start_seconds=data.get('start_seconds', None),
-            duration_seconds=data.get('duration_seconds', None),
+            start_seconds=data.get('start_seconds', 0),
+            duration_seconds=data.get('duration_seconds', 0),
             time_stretch=data.get('time_stretch', None),
             pitch_shift=data.get('pitch_shift', None),
             filter=FilterParameters.from_dict(data['filter_parameters']) if 'filter_parameters' in data else None,

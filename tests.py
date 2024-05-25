@@ -9,14 +9,16 @@ from soundfile import SoundFile
 from io import BytesIO
 
 class FakeAudioFetcher(AudioFetcher):
-    def __init__(self):
+    def __init__(self, get_duration_func = lambda url: 30):
         super().__init__(22050)
+        self.get_duration_func = get_duration_func
     
     def __call__(self, url):
-        return np.random.uniform(-1, 1, 22050 * 30)
+        duration = self.get_duration_func(url)
+        return np.random.uniform(-1, 1, 22050 * duration)
     
     def fetch(self, url):
-        return np.random.uniform(-1, 1, 22050 * 30)
+        return self.__call__(url)
 
 class Tests(TestCase):
     
@@ -44,6 +46,64 @@ class Tests(TestCase):
             ValueError,
             lambda: sequencer.render(SequencerParams(speed=-1, normalize=False, events=[]))
         )
+    
+    
+    def test_sampler_audio_render_is_as_long_as_impulse_response(self):
+        def get_duration(url: str) -> int:
+            if 'ir' in url:
+                return 10
+            else:
+                return 2
+        
+        fetcher = FakeAudioFetcher(get_duration)
+        sampler = Sampler(fetcher)
+            
+        samples = sampler.render(SamplerParameters(
+            url='https://example.com/sound', 
+            start_seconds=0, 
+            duration_seconds=2,
+            reverb=ReverbParameters(
+                url='https://example.com/ir',
+                mix=0.5
+            )))
+        self.assertEqual(samples.shape, (fetcher.samplerate * 10,))
+    
+    
+    def test_sampler_params_from_dict_infers_start_0(self):
+        params = SamplerParameters.from_dict(
+            dict(duration_seconds=10, url='https://example.com/sound'))
+        self.assertEqual(0, params.start_seconds)
+    
+    def test_sampler_params_from_dict_infers_duration_0(self):
+        params = SamplerParameters.from_dict(
+            dict(start_seconds=1, url='https://example.com/sound'))
+        self.assertEqual(0, params.duration_seconds)
+    
+    def test_sampler_produces_audio_with_inferred_duration(self):
+        
+        def get_duration(url: str) -> int:
+            return 12
+        
+        fetcher = FakeAudioFetcher(get_duration)
+        sampler = Sampler(fetcher)
+        samples = sampler.render(SamplerParameters(
+            url='https://example.com/sound', 
+            start_seconds=0))
+        
+        self.assertEqual(samples.shape, (fetcher.samplerate * 12,))
+    
+    def test_sampler_produces_audio_from_dict_parameters_with_inferred_duration(self):
+        
+        def get_duration(url: str) -> int:
+            return 12
+        
+        fetcher = FakeAudioFetcher(get_duration)
+        sampler = Sampler(fetcher)
+        params = SamplerParameters.from_dict(
+            dict(url='https://example.com/sound', start_seconds=0))
+        samples = sampler.render(params)
+        
+        self.assertEqual(samples.shape, (fetcher.samplerate * 12,))
     
     def test_sampler_produces_audio(self):
         fetcher = FakeAudioFetcher()
