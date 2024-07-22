@@ -138,7 +138,7 @@ class Sampler(BaseSynth):
         return self.fetcher.samplerate
     
     def render(self, params: SamplerParameters) -> np.ndarray:
-        self.validate(params)
+        # self.validate(params)
         return render(params, self.samplerate, self.fetcher)
 
     @property

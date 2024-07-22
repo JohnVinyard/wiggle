@@ -11,6 +11,7 @@ import json
 
 from .dictserialiazable import DictSerializable
 
+
 class HasId(Protocol):
     @property
     def id(self):

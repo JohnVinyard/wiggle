@@ -141,6 +141,10 @@ class SequencerParams(DictSerializable):
     def once(self, synth: 'Sequencer') -> 'Event':
         return Event(gain=1, time=0, synth=synth.render, params=deepcopy(self))
     
+
+    def __radd__(self, other: 'SequencerParams') -> 'SequencerParams':
+        return self.__add__(other)
+    
     def __add__(self, other: 'SequencerParams') -> 'SequencerParams':
         """
         Overlay two patterns
@@ -215,7 +219,7 @@ class Sequencer(BaseSynth):
     
     
     def render(self, params: SequencerParams) -> np.ndarray:
-        self.validate(params)
+        # self.validate(params)
         
         renders: Sequence[np.ndarray] = [event.synth(event.params) * event.gain for event in params.events]
         
